@@ -1,4 +1,5 @@
 const Staff = require("../models/staff");
+const Department = require("../models/department");
 const asyncHandler = require("express-async-handler");
 const cloudinary = require("../configs/cloudinaryConfig");
 const fs = require("fs");
@@ -49,6 +50,13 @@ const createStaff = asyncHandler(async (req, res) => {
         });
 
         const savedStaff = await newStaff.save();
+
+        await Department.findByIdAndUpdate(
+          department,
+          { $push: { staffList: savedStaff._id } },
+          { new: true }
+        );
+
         res.status(201).json({ success: true, data: savedStaff });
       }
     });
@@ -64,7 +72,9 @@ const createStaff = asyncHandler(async (req, res) => {
 const getStaffById = async (req, res) => {
   try {
     const staffId = req.params.id;
-    const existStaff = await Staff.findById(staffId);
+    const existStaff = await Staff.findById(staffId)
+      .populate("department")
+      .exec();
 
     if (!existStaff) {
       return res.status(404).json({ error: "Staff not found" });
@@ -78,7 +88,7 @@ const getStaffById = async (req, res) => {
 
 const getAllStaff = async (req, res) => {
   try {
-    const staffList = await Staff.find({});
+    const staffList = await Staff.find({}).populate("department").exec();
     if (staffList.length === 0) {
       res.status(204).json({ message: "No staffs available" });
     } else {
@@ -89,35 +99,46 @@ const getAllStaff = async (req, res) => {
   }
 };
 
-const deleteStaffById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-
+const deleteStaffById = async (req, res) => {
   try {
-    const staff = await Staff.findById(id);
+    const id = req.params.id;
 
-    if (!staff) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Staff not found" });
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Staff ID is required.",
+      });
     }
 
-    await staff.remove();
-    res
-      .status(200)
-      .json({ success: true, message: "Staff deleted successfully" });
+    const deletedAdmission = await Staff.findByIdAndDelete(id);
+
+    if (!deletedAdmission) {
+      return res.status(404).json({
+        success: false,
+        message: "Staff not found.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: deletedAdmission,
+      message: "Staff deleted successfully.",
+    });
   } catch (error) {
+    console.error(error);
     if (error.name === "CastError" && error.kind === "ObjectId") {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid ID format" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Staff ID format.",
+      });
     }
 
     res.status(500).json({
       success: false,
-      message: "Error deleting staff",
+      message: "Error deleting admission record.",
       error: error.message,
     });
   }
-});
+};
 
 module.exports = { createStaff, getStaffById, getAllStaff, deleteStaffById };
