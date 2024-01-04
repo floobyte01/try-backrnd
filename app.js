@@ -17,6 +17,7 @@ const departmentRouter = require("./routes/departmentRouter");
 const storyRouter = require("./routes/storyRouter");
 const blogRouter = require("./routes/blogRouter");
 const mentorRouter = require("./routes/mentorRouter");
+const studentRouter = require("./routes/studentRouter");
 const app = express();
 require("dotenv/config");
 const fileUpload = require("express-fileupload");
@@ -45,6 +46,7 @@ app.use("/api/downloaddata", downloadRouter);
 app.use("/api/admission", admissionRouter);
 app.use("/api/department", departmentRouter);
 app.use("/api/blog", blogRouter);
+app.use("/api/student", studentRouter);
 app.use("/b-u/story", storyRouter);
 app.use("/b-u/mentor", mentorRouter);
 
