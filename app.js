@@ -14,6 +14,9 @@ const studentCornerRouter = require("./routes/studentCornerRouter");
 const downloadRouter = require("./routes/downloadDataRouter");
 const admissionRouter = require("./routes/admissionRouter");
 const departmentRouter = require("./routes/departmentRouter");
+const storyRouter = require("./routes/storyRouter");
+const blogRouter = require("./routes/blogRouter");
+const mentorRouter = require("./routes/mentorRouter");
 const app = express();
 require("dotenv/config");
 const fileUpload = require("express-fileupload");
@@ -41,6 +44,9 @@ app.use("/api/studentcorner", studentCornerRouter);
 app.use("/api/downloaddata", downloadRouter);
 app.use("/api/admission", admissionRouter);
 app.use("/api/department", departmentRouter);
+app.use("/api/blog", blogRouter);
+app.use("/b-u/story", storyRouter);
+app.use("/b-u/mentor", mentorRouter);
 
 app.use(errorHandler);
 
