@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const Department = new mongoose.Schema(
+const departmentSchema = new mongoose.Schema(
   {
     departmentName: {
       type: String,
@@ -9,7 +9,6 @@ const Department = new mongoose.Schema(
     hod: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Staff",
-      unique: true,
     },
     staffList: [
       {
@@ -23,4 +22,4 @@ const Department = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Department", Department);
+module.exports = mongoose.model("Department", departmentSchema);

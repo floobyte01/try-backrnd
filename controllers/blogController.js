@@ -5,28 +5,7 @@ const fs = require("fs");
 
 const createBlog = asyncHandler(async (req, res) => {
   try {
-    const { title, content, category, url } = req.body;
-    let imageUrl = "";
-
-    if (req.files && req.files.image) {
-      const file = req.files.image;
-
-      const result = await new Promise((resolve, reject) => {
-        cloudinary.uploader.upload(file.tempFilePath, (error, result) => {
-          if (file.tempFilePath) {
-            fs.unlinkSync(file.tempFilePath);
-          }
-
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result);
-          }
-        });
-      });
-
-      imageUrl = result.url;
-    }
+    const { title, content, category, url, imageUrl } = req.body;
 
     const newBlog = new Blog({
       title,
@@ -34,6 +13,7 @@ const createBlog = asyncHandler(async (req, res) => {
       category,
       imageUrl,
       url,
+      imageUrl,
     });
 
     const savedBlog = await newBlog.save();
@@ -46,7 +26,6 @@ const createBlog = asyncHandler(async (req, res) => {
     });
   }
 });
-
 const getAllBlog = async (req, res) => {
   try {
     const blogs = await Blog.find();
@@ -61,6 +40,37 @@ const getAllBlog = async (req, res) => {
     res.status(200).json({ success: true, data: blogs });
   } catch (error) {
     console.error("Error fetching blogs:", error);
+
+    if (error.name === "CastError") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid data format",
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
+};
+const getBlogByCategory = async (req, res) => {
+  try {
+    const category = req.params.category;
+
+    const blogs = await Blog.find({ category });
+
+    if (!blogs || blogs.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `No blogs found for category: ${category}`,
+      });
+    }
+
+    res.status(200).json({ success: true, data: blogs });
+  } catch (error) {
+    console.error("Error fetching blogs by category:", error);
 
     if (error.name === "CastError") {
       return res.status(400).json({
@@ -199,6 +209,7 @@ const updateBlogById = async (req, res) => {
 module.exports = {
   createBlog,
   getAllBlog,
+  getBlogByCategory,
   getBlogById,
   deleteBlogById,
   updateBlogById,
